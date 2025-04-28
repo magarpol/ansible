@@ -94,6 +94,9 @@
         state: present
       when: not is_internal_ip
 
+    - name: Set immutable flag on exim4 config
+      ansible.builtin.command: chattr +i /etc/exim4/update-exim4.conf.conf
+
     - name: Restart exim4
       ansible.builtin.systemd:
         name: exim4.service
