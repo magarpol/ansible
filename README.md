@@ -17,6 +17,9 @@ This playbook configures netplan when creating a new server in IONOS Cloud Envir
 ### Cloud-Init permissions
 This playbook changes the cloud-init permissions on servers.
 
+### Deploy mk_apt plugin
+This playbook will delete the old version located in /plugins and create a new one with new script in /locals
+
 ### Exim4 install and configuration
 This playbook installs and configures exim4 on servers.
 
