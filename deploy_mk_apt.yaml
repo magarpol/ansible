@@ -1,0 +1,63 @@
+---
+- name: Deploy mk_apt local check for CheckMK
+  hosts: all
+  become: yes
+  tasks:
+
+    - name: Remove old mk_apt plugin file
+      file:
+        path: /usr/lib/check_mk_agent/plugins/mk_apt
+        state: absent
+
+    - name: Create new mk_apt local script
+      copy:
+        dest: /usr/lib/check_mk_agent/local/mk_apt
+        mode: '0755'
+        content: |
+          #!/usr/bin/env bash
+          set -euo pipefail
+
+          APT_GET=/usr/bin/apt-get
+          WARN=10
+          CRIT=10
+
+          # If apt-get is not present, return UNKNOWN
+          if [[ ! -x "$APT_GET" ]]; then
+            echo "3 APT_Updates - UNKNOWN: apt-get not found"
+            exit 3
+          fi
+
+          TMP=$(mktemp /tmp/mk_apt.XXXXXX)
+          trap 'rm -f "$TMP"' EXIT
+
+          # simulate upgrade; ignore non-zero exit so script continues
+          "$APT_GET" -o Debug::NoLocking=true -o APT::Get::Show-User-Simulation-Note=false -s upgrade >"$TMP" 2>/dev/null || true
+
+          # drop configuration lines that begin with "Conf"
+          upgrades=$(grep -v '^Conf' "$TMP" || true)
+
+          # count security updates (common repo names) and total upgradable lines
+          SECURITY=$(echo "$upgrades" | grep -i -E 'security|ubuntu-security|debian-security' | wc -l || true)
+          TOTAL=$(echo "$upgrades" | sed '/^\s*$/d' | wc -l)
+          NORMAL=$(( TOTAL - SECURITY ))
+          if (( NORMAL < 0 )); then NORMAL=0; fi
+
+          # decide state: security >= CRIT -> CRIT, else normal >= WARN -> WARN, else OK
+          STATE=0
+          if (( SECURITY >= CRIT )); then
+            STATE=2
+          elif (( NORMAL >= WARN )); then
+            STATE=1
+          fi
+
+          TEXT="${NORMAL} normal updates, ${SECURITY} security updates pending"
+
+          # Local check output: <state> <SERVICE_NAME> - <human text> | perfdata
+          # Perfdata format: name=value;warn;crit;min;max
+          echo "${STATE} APT_Updates - ${TEXT}"
+          exit ${STATE}
+
+    - name: Restart CheckMK agent socket
+      systemd:
+        name: check-mk-agent.socket
+        state: restarted
