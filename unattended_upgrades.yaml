@@ -8,7 +8,7 @@
 # ============================================================================
 ---
 - name: Configure unattended-upgrades 
-  hosts: srv-playbooks-01.innovator.mid
+  hosts: server
   become: yes
 
   tasks:
@@ -79,3 +79,4 @@
       ansible.builtin.systemd:
         name: unattended-upgrades.service
         state: restarted
+
