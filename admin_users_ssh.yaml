@@ -9,7 +9,7 @@
 
 --- 
 - name: Create admin user with Public Keys and configure sshd service
-  hosts: srv-jama-test-01.innovator.mid
+  hosts: server
   become: yes
   vars:
     admin_users:
@@ -64,13 +64,13 @@
       ansible.builtin.blockinfile:
         path: /etc/ssh/sshd_config
         block: |
-          Match User t1-mogarcia
+          Match User <user>
             PasswordAuthentication no
             AuthenticationMethods publickey
-          Match User t1-tsschmid
+          Match User <user>
             PasswordAuthentication no
             AuthenticationMethods publickey
-          Match User t1-snbrunne
+          Match User <user>
             PasswordAuthentication no
             AuthenticationMethods publickey
         state: present
