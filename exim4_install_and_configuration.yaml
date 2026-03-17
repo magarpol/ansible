@@ -21,7 +21,7 @@
       - "dc_relay_domains=''"
       - "dc_minimaldns='false'"
       - "dc_relay_nets=''"
-      - "dc_smarthost='smtp.mid.de'"
+      - "dc_smarthost='<smtp_server>'"
       - "CFILEMODE='644'"
       - "dc_use_split_config='false'"
       - "dc_hide_mailname='true'"
@@ -36,7 +36,7 @@
       - "dc_relay_domains=''"
       - "dc_minimaldns='false'"
       - "dc_relay_nets=''"
-      - "dc_smarthost='mid-de.mail.protection.outlook.com'"
+      - "dc_smarthost='<outlook_server>'"
       - "CFILEMODE='644'"
       - "dc_use_split_config='false'"
       - "dc_hide_mailname='true'"
@@ -84,13 +84,13 @@
     - name: Configure /etc/email-addresses for internal IP 
       ansible.builtin.lineinfile:
         path: /etc/email-addresses
-        line: "root: admins@mid.de"
+        line: "root: <email_address>"
         state: present
 
     - name: Configure /etc/email-addresses for external IP
       ansible.builtin.lineinfile:
         path: /etc/email-addresses
-        line: "root: {{ ansible_hostname }}@bpanda.com"
+        line: "root: {{ ansible_hostname }}@host.com"
         state: present
       when: not is_internal_ip
 
